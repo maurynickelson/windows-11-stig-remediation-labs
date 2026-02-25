@@ -139,12 +139,10 @@ Control WN11-UR-000025 passed compliance validation.
 
 ---
 
-# Evidence
+## Evidence
 
-- Baseline scan report (PDF)
-- Post-remediation scan report (PDF)
-- Security template (.inf)
-- Policy export validation output
+- [Baseline Scan Report](evidence/baseline_scan.pdf)
+- [Post-Remediation Scan Report](evidence/post_remediation_scan.pdf)
 
 ---
 
