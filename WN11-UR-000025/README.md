@@ -1,5 +1,5 @@
 # WN11-UR-000025  
-## The "Allow log on locally" user right must only be assigned to the Administrators and Users groups
+## Allow log on locally must only be assigned to Administrators and Users
 
 **STIG ID:** WN11-UR-000025  
 **Severity:** Medium  
@@ -11,33 +11,27 @@
 
 ---
 
-## Table of Contents
+## Skills Demonstrated
 
-- [Control Objective](#control-objective)
-- [Security Risk](#security-risk)
-- [Baseline Scan Results](#baseline-scan-results)
-  - [Baseline Finding](#baseline-finding)
-- [Remediation Process](#remediation-process)
-  - [Step 1 – Create Security Template](#step-1--create-security-template)
-  - [Step 2 – Apply Template](#step-2--apply-template)
-  - [Issue Encountered](#issue-encountered)
-- [Final Remediation](#final-remediation)
-- [Post-Remediation Validation](#post-remediation-validation)
-  - [Tenable Scan Summary (Post-Remediation)](#tenable-scan-summary-post-remediation)
-- [Evidence](#evidence)
-- [NIST 800-53 Mapping](#nist-800-53-mapping)
-- [Skills Demonstrated](#skills-demonstrated)
+- Windows 11 STIG remediation  
+- Vulnerability validation (true positive confirmation)  
+- Security Configuration Editor (`secedit`) auditing  
+- Security template creation and enforcement  
+- Group Policy troubleshooting (policy override detection)  
+- Tenable vulnerability management workflow  
+- Compliance validation via re-scan  
+- NIST 800-53 control alignment documentation  
 
-  ---
-  
+---
+
 ## Control Objective
 
-Restrict interactive logon rights (SeInteractiveLogonRight) to only:
+Restrict interactive logon rights (`SeInteractiveLogonRight`) to only:
 
 - Administrators  
 - Users  
 
-This prevents unauthorized accounts or groups from logging on locally to the system.
+This prevents unauthorized accounts or groups from logging on locally to the system and enforces least privilege.
 
 ---
 
@@ -50,13 +44,25 @@ If additional accounts are granted interactive logon rights, risk increases for:
 - Persistence  
 - Lateral movement staging  
 
-This control enforces least privilege and reduces the attack surface.
+This control reduces the attack surface and strengthens access enforcement.
 
 ---
 
-# Baseline Scan Results
+# Phase 1 — Detection (Baseline Scan)
 
-Initial Tenable scan identified the system as **Non-Compliant**.
+Initial Tenable audit identified the system as **Non-Compliant**.
+
+### Baseline Tenable Audit Status
+
+![Initial Scan - Failed Audit](evidence/initial_scan.png)
+
+Full baseline report:
+
+- [Baseline Scan Report (PDF)](evidence/baseline_scan.pdf)
+
+---
+
+# Phase 2 — Validation & Analysis
 
 Manual validation was performed using:
 
@@ -65,22 +71,22 @@ secedit /export /cfg C:\temp\secpol.cfg
 Select-String "SeInteractiveLogonRight" C:\temp\secpol.cfg
 ```
 
-### Baseline Finding
+### Validation Result (Pre-Remediation)
 
-The following accounts/groups had local logon rights:
+The following accounts/groups had interactive logon rights:
 
 - Administrators  
 - Users  
 - DisabledGuest01  
 - Backup Operators  
 
-This confirmed a **true positive** finding.
+This confirmed the Tenable finding was a **true positive**.
 
 ---
 
-# Remediation Process
+# Phase 3 — Remediation
 
-## Step 1 – Create Security Template
+## Step 1 — Create Security Template
 
 ```powershell
 @"
@@ -94,28 +100,26 @@ SeInteractiveLogonRight = *S-1-5-32-544,*S-1-5-32-545
 "@ | Set-Content -Path "C:\temp\WN11-UR-000025.inf" -Encoding Unicode
 ```
 
-## Step 2 – Apply Template
+## Step 2 — Apply Template
 
 ```powershell
 secedit /configure /db C:\temp\secedit.sdb /cfg C:\temp\WN11-UR-000025.inf /areas USER_RIGHTS
 gpupdate /force
 ```
 
----
+### Issue Encountered
 
-## Issue Encountered
+The setting did not update after applying the template.
 
-Setting did not change after applying template.
-
-Root Cause:
+**Root Cause:**
 
 Local Group Policy was enforcing the user right and overriding local security template changes.
 
 ---
 
-# Final Remediation
+## Final Remediation (Policy-Level Enforcement)
 
-Modified setting via Local Group Policy:
+Modified setting via:
 
 Computer Configuration →  
 Windows Settings →  
@@ -129,11 +133,13 @@ Configured to include only:
 - Administrators  
 - Users  
 
+Remediation required enforcement at the policy level due to baseline inheritance.
+
 ---
 
-# Post-Remediation Validation
+# Phase 4 — Post-Remediation Validation
 
-Re-exported security configuration:
+Re-exported configuration:
 
 ```powershell
 secedit /export /cfg C:\temp\secpol.cfg
@@ -141,6 +147,16 @@ Select-String "SeInteractiveLogonRight" C:\temp\secpol.cfg
 ```
 
 Re-ran Tenable scan.
+
+### Post-Remediation Audit Status
+
+![Post Remediation - Passed Audit](evidence/post_remediation_passed.png)
+
+Full post-remediation report:
+
+- [Post-Remediation Scan Report (PDF)](evidence/post_remediation_scan.pdf)
+
+---
 
 ## Tenable Scan Summary (Post-Remediation)
 
@@ -158,10 +174,12 @@ Control WN11-UR-000025 passed compliance validation.
 
 ---
 
-## Evidence
+# Evidence
 
-- [Baseline Scan Report](evidence/baseline_scan.pdf)
-- [Post-Remediation Scan Report](evidence/post_remediation_scan.pdf)
+- Baseline audit screenshot: `initial_scan.png`  
+- Post-remediation audit screenshot: `post_remediation_passed.png`  
+- [Baseline Scan Report (PDF)](evidence/baseline_scan.pdf)  
+- [Post-Remediation Scan Report (PDF)](evidence/post_remediation_scan.pdf)
 
 ---
 
@@ -174,16 +192,3 @@ Control WN11-UR-000025 passed compliance validation.
 | AC-5 | Separation of Duties | Prevents inappropriate privilege overlap |
 | AC-6 | Least Privilege | Restricts interactive access to required groups only |
 | IA-2 | Identification & Authentication | Supports controlled interactive session authentication |
-
----
-
-# Skills Demonstrated
-
-- Windows 11 STIG remediation  
-- True positive validation  
-- Security template enforcement  
-- Group Policy troubleshooting  
-- Compliance verification via Tenable  
-- Security configuration auditing with secedit  
-- Policy-level remediation validation  
-- NIST control mapping documentation  
