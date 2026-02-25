@@ -11,6 +11,25 @@
 
 ---
 
+## Table of Contents
+
+- [Control Objective](#control-objective)
+- [Security Risk](#security-risk)
+- [Baseline Scan Results](#baseline-scan-results)
+  - [Baseline Finding](#baseline-finding)
+- [Remediation Process](#remediation-process)
+  - [Step 1 – Create Security Template](#step-1--create-security-template)
+  - [Step 2 – Apply Template](#step-2--apply-template)
+  - [Issue Encountered](#issue-encountered)
+- [Final Remediation](#final-remediation)
+- [Post-Remediation Validation](#post-remediation-validation)
+  - [Tenable Scan Summary (Post-Remediation)](#tenable-scan-summary-post-remediation)
+- [Evidence](#evidence)
+- [NIST 800-53 Mapping](#nist-800-53-mapping)
+- [Skills Demonstrated](#skills-demonstrated)
+
+  ---
+  
 ## Control Objective
 
 Restrict interactive logon rights (SeInteractiveLogonRight) to only:
