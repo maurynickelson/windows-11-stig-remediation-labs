@@ -6,7 +6,7 @@
 **System:** Windows 11 Pro Build 26200  
 **Host:** notengo  
 **Assessment Tool:** Tenable Vulnerability Management  
-**Assessment Date:** 05 Feb 2026  
+**Assessment Date:** 04 Feb 2026  
 **Analyst:** Maury Nickelson  
 
 ---
