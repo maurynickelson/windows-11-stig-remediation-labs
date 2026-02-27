@@ -1,61 +1,111 @@
 # WN11-CC-000110  
-## Printing over HTTP must be prevented
+## Printing over HTTP Must Be Prevented
 
 **STIG ID:** WN11-CC-000110  
 **Severity:** Medium  
 **System:** Windows 11  
 **Asset:** notengo  
-**Assessment Tool:** Tenable / STIG Viewer  
+**Assessment Tool:** Tenable Vulnerability Management  
 **Assessment Date:** 01/29/2026  
 **Analyst:** Maury Nickelson  
 
 ---
 
+## Table of Contents
+
+- [Skills Demonstrated](#skills-demonstrated)
+- [Control Objective](#control-objective)
+- [Security Risk](#security-risk)
+- [Technical Background](#technical-background)
+- [Phase 1 — Detection (Baseline Scan)](#phase-1--detection-baseline-scan)
+- [Phase 2 — Validation & Analysis](#phase-2--validation--analysis)
+- [Phase 3 — Remediation](#phase-3--remediation)
+- [Phase 4 — Post-Remediation Validation](#phase-4--post-remediation-validation)
+- [Evidence](#evidence)
+- [NIST 800-53 Mapping](#nist-800-53-mapping)
+- [Compliance & Operational Impact](#compliance--operational-impact)
+
+---
+
 ## Skills Demonstrated
 
-- Windows 11 STIG remediation  
-- Registry policy validation via PowerShell  
+- Windows 11 STIG remediation lifecycle execution  
+- Registry-based policy validation via PowerShell  
 - Print Spooler attack surface reduction  
 - True-positive vulnerability confirmation  
-- Policy-based remediation enforcement  
-- Secure configuration management  
-- Compliance verification via re-scan  
+- Secure configuration enforcement  
+- Policy-based remediation  
+- Vulnerability re-scan validation workflow  
 - NIST 800-53 control alignment  
+- Secure configuration documentation  
 
 ---
 
 ## Control Objective
 
-Prevent printing over HTTP by ensuring the policy `DisableHTTPPrinting` is enforced.
+Prevent printing over HTTP by enforcing the registry policy:
 
-Printing over HTTP increases exposure of the Print Spooler service and may introduce unnecessary risk in secure environments.
+```
+DisableHTTPPrinting = 1
+```
+
+This ensures HTTP-based print traffic is blocked and aligns the system with DISA STIG hardening requirements.
 
 ---
 
 ## Security Risk
 
-Allowing HTTP printing can:
+Allowing HTTP printing increases exposure by:
 
-- Increase Print Spooler attack surface  
-- Enable remote code execution pathways (if combined with spooler vulnerabilities)  
-- Facilitate privilege escalation  
-- Support lateral movement  
+- Expanding Print Spooler attack surface  
+- Enabling remote exploitation pathways  
+- Increasing risk of privilege escalation  
+- Supporting lateral movement opportunities  
 
-Disabling HTTP printing strengthens system hardening and reduces exposure.
+Given historical Print Spooler vulnerabilities (e.g., remote code execution flaws), disabling unnecessary communication channels is critical for system hardening.
+
+---
+
+## Technical Background
+
+Windows HTTP printing allows clients to print to printers using web protocols.
+
+Registry Path:
+
+```
+HKLM:\Software\Policies\Microsoft\Windows NT\Printers
+```
+
+Key:
+
+```
+DisableHTTPPrinting (DWORD)
+```
+
+Values:
+
+- `0` = HTTP printing enabled (Non-Compliant)
+- `1` = HTTP printing disabled (Compliant)
 
 ---
 
 # Phase 1 — Detection (Baseline Scan)
 
-Initial Tenable STIG audit marked the control as **Failed**.
+Initial Tenable STIG audit marked this control as **Failed**.
 
-The vulnerability scan identified that HTTP printing was enabled.
+### Baseline Audit Status
+
+![Baseline Failed Audit](evidence/baseline_failed_audit.png)
+
+Full baseline report:
+
+- [WN11-CC-000110_Baseline_Tenable_Report.pdf](evidence/WN11-CC-000110_Baseline_Tenable_Report.pdf)
 
 ---
 
 # Phase 2 — Validation & Analysis
 
-Before remediation, I validated the scan finding to confirm it was not a false positive.
+Before remediation, I validated the finding manually to confirm it was not a false positive.
 
 Executed:
 
@@ -66,25 +116,21 @@ Get-ItemProperty `
   -ErrorAction SilentlyContinue
 ```
 
-### Validation Result
-
-The registry value returned:
+### Validation Result (Pre-Remediation)
 
 ```
 DisableHTTPPrinting : 0
 ```
 
-A value of **0** indicates HTTP printing is enabled.
+Value `0` confirms HTTP printing was enabled.
 
-This confirmed the Tenable finding was a **true positive**.
+This validated the Tenable finding as a **true positive**.
 
 ---
 
 # Phase 3 — Remediation
 
-Because HTTP printing increases potential exposure, remediation was required.
-
-## Remediation Execution
+To enforce compliance, the policy was updated at the registry level.
 
 Executed:
 
@@ -96,15 +142,15 @@ Set-ItemProperty `
   -Value 1
 ```
 
-Setting the value to **1** enforces the policy and disables HTTP printing.
+Setting the value to `1` disables HTTP printing and aligns the system with STIG policy.
 
-This change aligns the system with STIG hardening requirements.
+This change reduces unnecessary network exposure tied to the Print Spooler service.
 
 ---
 
 # Phase 4 — Post-Remediation Validation
 
-To confirm successful remediation:
+Validation performed using:
 
 ```powershell
 Get-ItemProperty `
@@ -112,32 +158,34 @@ Get-ItemProperty `
   -Name DisableHTTPPrinting
 ```
 
-### Validation Result
+### Validation Result (Post-Remediation)
 
 ```
 DisableHTTPPrinting : 1
 ```
 
-A value of **1** confirms HTTP printing is disabled.
+HTTP printing successfully disabled.
 
-Additionally, the Tenable scan was re-run to verify compliance.
+Tenable re-scan confirmed compliance.
 
-### Post-Remediation Result
+### Post-Remediation Audit Status
 
-Control WN11-CC-000110 returned a compliant status.
+![Post Remediation Passed](evidence/post_remediation_passed.png)
+
+Full post-remediation report:
+
+- [WN11-CC-000110_Post-Remediation_Tenable_Report.pdf](evidence/WN11-CC-000110_Post-Remediation_Tenable_Report.pdf)
 
 ---
 
-## Evidence
+# Evidence
 
-(Place screenshots and reports inside the `evidence/` folder and reference them below)
+Evidence stored in `/evidence` folder:
 
-Recommended structure:
-
-- Baseline audit screenshot (failed status)  
-- Post-remediation audit screenshot (passed status)  
-- [Baseline Scan Report (PDF)](evidence/baseline_scan.pdf)  
-- [Post-Remediation Scan Report (PDF)](evidence/post_remediation_scan.pdf)  
+- Baseline screenshot: `baseline_failed_audit.png`
+- Post-remediation screenshot: `post_remediation_passed.png`
+- Baseline report: `WN11-CC-000110_Baseline_Tenable_Report.pdf`
+- Post-remediation report: `WN11-CC-000110_Post-Remediation_Tenable_Report.pdf`
 
 ---
 
@@ -146,19 +194,22 @@ Recommended structure:
 | NIST Control | Control Name | Relevance |
 |--------------|-------------|-----------|
 | CM-6 | Configuration Settings | Enforces secure system configuration |
-| AC-3 | Access Enforcement | Restricts unintended network printing behavior |
+| AC-3 | Access Enforcement | Restricts unintended communication channels |
 | AC-6 | Least Privilege | Reduces unnecessary service exposure |
 | SI-2 | Flaw Remediation | Addresses configuration weaknesses |
-| SC-7 | Boundary Protection | Limits insecure communication channels |
+| SC-7 | Boundary Protection | Limits insecure network pathways |
 
 ---
 
-## Compliance Impact
+# Compliance & Operational Impact
 
 This remediation:
 
 - Reduced Print Spooler attack surface  
-- Eliminated unnecessary HTTP-based printing exposure  
-- Strengthened configuration hardening posture  
+- Eliminated unnecessary HTTP-based printing  
+- Strengthened system hardening posture  
 - Demonstrated registry-level policy enforcement  
-- Validated compliance through scanner confirmation  
+- Validated compliance through vulnerability re-scan  
+- Improved audit readiness  
+
+This control aligns with enterprise hardening standards and demonstrates structured vulnerability remediation workflow.
