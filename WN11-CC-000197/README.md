@@ -29,13 +29,16 @@
 
 ## Skills Demonstrated
 
-- Windows Group Policy validation  
-- Registry-based security control enforcement  
-- PowerShell registry interrogation  
-- Secure configuration baseline alignment  
-- Attack surface reduction through policy hardening  
-- Vulnerability remediation lifecycle documentation  
-- STIG compliance validation  
+- Windows endpoint hardening and secure configuration management  
+- Registry-level security policy enforcement and validation  
+- PowerShell-based registry interrogation and configuration auditing  
+- Group Policy security control verification  
+- Vulnerability remediation lifecycle execution (detect → validate → remediate → verify)  
+- Attack surface reduction through feature minimization  
+- STIG baseline compliance alignment  
+- Configuration drift identification and correction  
+- Windows 11 operating system security control enforcement  
+- Security documentation and audit evidence collection  
 
 ---
 
@@ -45,11 +48,11 @@ Prevent Microsoft Consumer Experience features from being enabled on Windows 11 
 
 This control enforces a Group Policy setting that disables:
 
-- Automatic installation of consumer apps  
+- Automatic installation of consumer applications  
 - Unsolicited application suggestions  
-- Consumer-targeted features  
+- Consumer-facing system features  
 
-The objective is to maintain a hardened enterprise baseline.
+The objective is to maintain a hardened, standardized enterprise configuration baseline.
 
 ---
 
@@ -58,11 +61,11 @@ The objective is to maintain a hardened enterprise baseline.
 Although low severity, leaving Microsoft consumer experiences enabled may:
 
 - Introduce unnecessary applications  
-- Increase system attack surface  
-- Install non-essential software components  
+- Increase the system attack surface  
 - Reduce configuration standardization  
+- Install non-essential software components  
 
-While not directly exploitable, disabling these features strengthens system hygiene and reduces unnecessary exposure.
+While not directly exploitable, disabling these features strengthens configuration hygiene and supports the principle of least functionality.
 
 Severity: **Low**
 
@@ -74,7 +77,7 @@ The Group Policy setting:
 
 **Turn off Microsoft consumer experiences**
 
-Is enforced via registry key:
+Is enforced via registry path:
 
 ```
 HKLM:\SOFTWARE\Policies\Microsoft\Windows\CloudContent
@@ -92,11 +95,17 @@ Required value:
 1
 ```
 
+When set to `1`, consumer experience features are disabled at the operating system level.
+
 ---
 
 # Phase 1 — Detection (Baseline Scan)
 
 Initial Tenable STIG audit marked this control as **Failed**.
+
+### Baseline Audit Evidence
+
+![Baseline Failed Audit](evidence/WN11-CC-000197_Baseline_Failed_Audit.png)
 
 The system did not have the required policy configured.
 
@@ -104,7 +113,7 @@ The system did not have the required policy configured.
 
 # Phase 2 — Validation & Analysis
 
-To confirm the finding was accurate, PowerShell validation was performed:
+Manual validation was performed to confirm the finding.
 
 ```powershell
 Get-ItemProperty `
@@ -113,12 +122,15 @@ Get-ItemProperty `
   -ErrorAction SilentlyContinue
 ```
 
-### Validation Result (Pre-Remediation)
+### Pre-Remediation Registry Evidence
 
-The policy was:
+![Pre-Remediation Registry Check](evidence/WN11-CC-000197_Pre_Remediation_Registry_Check.png)
 
-- Not configured  
-- Or set to 0  
+Result indicated:
+
+- Policy not configured  
+  OR  
+- Value set to `0`
 
 This confirmed the Tenable finding was a **true positive**.
 
@@ -126,7 +138,7 @@ This confirmed the Tenable finding was a **true positive**.
 
 # Phase 3 — Remediation
 
-Remediation required configuring the registry policy value to enforce the Group Policy setting.
+Remediation required enforcing the registry value associated with the Group Policy setting.
 
 Executed:
 
@@ -145,7 +157,7 @@ This sets:
 DisableWindowsConsumerFeatures = 1
 ```
 
-Which disables Microsoft consumer experience features.
+Which disables Microsoft consumer experience features at the OS level.
 
 ---
 
@@ -159,31 +171,32 @@ Get-ItemProperty `
   -Name DisableWindowsConsumerFeatures
 ```
 
-### Validation Result
+### Post-Remediation Registry Evidence
+
+![Post-Remediation Registry Check](evidence/WN11-CC-000197_Post_Remediation_Registry_Check.png)
+
+Result confirmed:
 
 ```
 DisableWindowsConsumerFeatures : 1
 ```
 
-This confirms:
-
-- Group Policy is enforced  
-- Consumer experience features are disabled  
-
 A Tenable re-scan confirmed the control passed.
+
+### Post-Remediation Audit Evidence
+
+![Post-Remediation Passed Audit](evidence/WN11-CC-000197_Post_Remediation_Passed_Audit.png)
 
 ---
 
 # Evidence
 
-(Place artifacts in `/evidence` folder)
+Artifacts stored in `/evidence`:
 
-Recommended filenames:
-
-- WN11-CC-000197_Baseline_Failed_Audit.png  
-- WN11-CC-000197_Pre_Remediation_Registry_Check.png  
-- WN11-CC-000197_Post_Remediation_Registry_Check.png  
-- WN11-CC-000197_Post_Remediation_Passed_Audit.png  
+- `WN11-CC-000197_Baseline_Failed_Audit.png`
+- `WN11-CC-000197_Pre_Remediation_Registry_Check.png`
+- `WN11-CC-000197_Post_Remediation_Registry_Check.png`
+- `WN11-CC-000197_Post_Remediation_Passed_Audit.png`
 
 ---
 
@@ -191,9 +204,9 @@ Recommended filenames:
 
 | NIST Control | Control Name | Relevance |
 |--------------|-------------|-----------|
-| CM-6 | Configuration Settings | Enforces secure system configuration baseline |
+| CM-6 | Configuration Settings | Enforces secure configuration baseline |
 | CM-7 | Least Functionality | Reduces unnecessary features and services |
-| AC-6 | Least Privilege | Supports principle of minimal exposure |
+| AC-6 | Least Privilege | Supports minimal exposure of system components |
 | SI-2 | Flaw Remediation | Addresses configuration weakness |
 
 ---
@@ -203,9 +216,9 @@ Recommended filenames:
 This remediation:
 
 - Reduced unnecessary feature exposure  
-- Strengthened configuration standardization  
-- Aligned system with secure enterprise baseline  
-- Demonstrated registry-based policy enforcement  
+- Strengthened Windows configuration baseline  
+- Enforced Group Policy via registry control  
+- Demonstrated structured remediation lifecycle  
 - Validated compliance through scanner confirmation  
 
-Although low severity, this control supports a hardened and standardized Windows 11 environment.
+Although low severity, this control supports a hardened and standardized Windows 11 environment aligned with enterprise security best practices.
