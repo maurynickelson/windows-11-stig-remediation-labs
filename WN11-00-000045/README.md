@@ -64,7 +64,7 @@ Systems without active antivirus protection are exposed to:
 - Remote code execution  
 - Lateral movement  
 
-Absence of antivirus protection significantly increases the likelihood of system compromise and unauthorized access.
+Absence of antivirus protection significantly increases the likelihood of system compromise.
 
 Severity: **High**
 
@@ -101,11 +101,15 @@ Initial Tenable STIG audit marked this control as **Failed**.
 
 The scanner reported that no antivirus program was active on the system.
 
+### Baseline Audit Evidence
+
+![Baseline Failed Audit](evidence/WN11-00-000045_Baseline_Failed_Audit.png)
+
 ---
 
 # Phase 2 — Validation & Analysis
 
-To confirm whether this was a legitimate finding or a scanner false positive, manual validation was performed.
+To determine whether the finding was legitimate or a scanner false positive, manual validation was performed.
 
 ## Defender Service Status Check
 
@@ -113,34 +117,40 @@ To confirm whether this was a legitimate finding or a scanner false positive, ma
 Get-MpComputerStatus | Select AMServiceEnabled, AntivirusEnabled, RealTimeProtectionEnabled
 ```
 
-### Results
+### Result
 
 - AMServiceEnabled: True  
 - AntivirusEnabled: True  
 - RealTimeProtectionEnabled: True  
 
+### PowerShell Validation Evidence
+
+![Defender Status PowerShell Output](evidence/WN11-00-000045_Defender_Status_PowerShell.png)
+
 This confirmed:
 
-- Microsoft Defender Antivirus service is running  
-- The antivirus engine is enabled  
+- Microsoft Defender service is running  
+- Antivirus engine is enabled  
 - Real-time protection is active  
 
 ---
 
 ## Windows Security Center Validation
 
-To ensure the operating system recognizes active protection:
-
 ```powershell
 Get-CimInstance -Namespace root/SecurityCenter2 -ClassName AntiVirusProduct
 ```
 
-Result confirmed:
+### Security Center Evidence
 
-- Windows recognizes Microsoft Defender as installed  
-- System reports active antivirus protection  
+![Windows Security Center Query](evidence/WN11-00-000045_WindowsSecurityCenter_Query.png)
 
-These results confirm the STIG requirement is satisfied.
+Results confirmed:
+
+- Windows recognizes Microsoft Defender as the installed antivirus solution  
+- The system reports active protection  
+
+These findings confirm the STIG requirement is satisfied.
 
 ---
 
@@ -148,37 +158,35 @@ These results confirm the STIG requirement is satisfied.
 
 No remediation required.
 
-Validation confirmed that:
+Technical validation confirmed:
 
 - Antivirus software is installed  
 - Real-time protection is enabled  
 - The OS reports active protection  
 
-The Tenable finding appears to be a **false positive**.
+The Tenable finding was determined to be a **false positive**.
 
-In an enterprise environment, this condition would be escalated to the vulnerability management or security engineering team for scanner rule review.
+In an enterprise environment, this condition would be escalated to vulnerability management for scanner rule review.
 
 ---
 
 # Post-Validation Status
 
-Control determined compliant after technical validation.
+Control determined compliant after manual validation.
 
-No configuration changes were necessary.
+No configuration changes were required.
 
-Finding documented as a scanner false positive.
+Finding documented as scanner false positive.
 
 ---
 
 # Evidence
 
-(Place artifacts inside `/evidence` folder)
+Artifacts stored in `/evidence`:
 
-Recommended evidence:
-
-- Baseline failed audit screenshot  
-- Defender PowerShell status output screenshot  
-- Windows Security Center query output screenshot  
+- `WN11-00-000045_Baseline_Failed_Audit.png`
+- `WN11-00-000045_Defender_Status_PowerShell.png`
+- `WN11-00-000045_WindowsSecurityCenter_Query.png`
 
 ---
 
@@ -189,7 +197,7 @@ Recommended evidence:
 | SI-3 | Malicious Code Protection | Requires active malware detection capability |
 | SI-2 | Flaw Remediation | Ensures protective software is maintained |
 | CM-6 | Configuration Settings | Enforces secure baseline configuration |
-| AC-6 | Least Privilege | Supports endpoint integrity and protection |
+| AC-6 | Least Privilege | Supports endpoint integrity controls |
 
 ---
 
@@ -203,9 +211,9 @@ Although the vulnerability scanner reported failure, manual validation confirmed
 
 This assessment demonstrates:
 
-- Proper vulnerability validation discipline  
+- Mature vulnerability validation practices  
 - Avoidance of unnecessary remediation  
-- Mature false-positive handling  
-- Alignment with endpoint security best practices  
+- Strong understanding of endpoint security controls  
+- Operational awareness of false-positive handling  
 
-The control remains compliant and no remediation was required.
+The control remains compliant.
