@@ -29,14 +29,15 @@
 
 ## Skills Demonstrated
 
-- Windows network stack hardening  
-- IPv6 configuration security enforcement  
-- Registry-based TCP/IP parameter auditing  
-- PowerShell registry interrogation and modification  
-- Network attack surface reduction  
-- Vulnerability remediation lifecycle (detect → validate → remediate → verify)  
-- Security baseline alignment with STIG controls  
-- Medium-severity vulnerability handling and documentation  
+- Windows network stack hardening and secure TCP/IP configuration  
+- IPv6 security control enforcement and attack surface reduction  
+- Registry-based security configuration auditing and modification  
+- PowerShell-based registry interrogation and remediation  
+- Vulnerability scanner result validation and true-positive confirmation  
+- Medium-severity vulnerability remediation lifecycle execution  
+- Network-layer security configuration management  
+- Endpoint baseline alignment with DISA STIG requirements  
+- Security documentation and audit artifact collection  
 
 ---
 
@@ -44,9 +45,9 @@
 
 Configure IPv6 source routing to the highest protection level by disabling it.
 
-This control enforces system-level network hardening to prevent attackers from manipulating packet routing paths to bypass security controls or monitoring systems.
+This control enforces system-level network hardening to prevent attackers from manipulating packet routing paths to bypass security monitoring, filtering controls, or detection mechanisms.
 
-Required configuration:
+Required registry value:
 
 ```
 DisableIPSourceRouting = 2
@@ -56,17 +57,16 @@ DisableIPSourceRouting = 2
 
 ## Security Risk
 
-If IPv6 source routing is enabled or not set to highest protection:
+If IPv6 source routing is enabled or not configured to highest protection:
 
-- Attackers may manipulate packet routing paths  
-- Security monitoring controls may be bypassed  
-- Filtering mechanisms may be evaded  
+- Attackers may manipulate routing paths  
+- Security controls may be bypassed  
 - Network reconnaissance may be facilitated  
-- Lateral movement risk increases  
+- Lateral movement opportunities may increase  
 
 Severity: **Medium**
 
-Disabling IPv6 source routing reduces routing manipulation risks and strengthens network-level defenses.
+Disabling IPv6 source routing reduces routing manipulation risk and strengthens network-layer defenses.
 
 ---
 
@@ -84,7 +84,7 @@ Registry value:
 DisableIPSourceRouting
 ```
 
-Value meanings:
+Value definitions:
 
 - 0 = No protection  
 - 1 = Medium protection  
@@ -96,7 +96,11 @@ Value meanings:
 
 Initial Tenable STIG audit marked this control as **Failed**.
 
-The system was not configured to highest IPv6 source routing protection.
+### Baseline Audit Evidence
+
+![Baseline Failed Audit](evidence/WN11-CC-000020_Baseline_Failed_Audit.png)
+
+The system was not configured to the required highest protection level.
 
 ---
 
@@ -111,23 +115,23 @@ Get-ItemProperty `
   -ErrorAction SilentlyContinue
 ```
 
-### Validation Result (Pre-Remediation)
+### Pre-Remediation Registry Evidence
 
-Command returned:
+![Pre-Remediation Registry Check](evidence/WN11-CC-000020_Pre_Remediation_Registry_Check.png)
 
-- No output  
+Result indicated:
+
+- Value missing  
   OR  
 - Value not equal to `2`
 
 This confirmed the Tenable finding was a **true positive**.
 
-IPv6 source routing was not configured to highest protection.
-
 ---
 
 # Phase 3 — Remediation
 
-Remediation required configuring the registry value to `2`.
+Remediation required configuring the registry value to enforce highest protection.
 
 Executed:
 
@@ -158,7 +162,7 @@ gpupdate /force
 
 # Phase 4 — Post-Remediation Validation
 
-Re-validated registry configuration:
+Registry configuration re-validated:
 
 ```powershell
 Get-ItemProperty `
@@ -166,28 +170,32 @@ Get-ItemProperty `
   -Name DisableIPSourceRouting
 ```
 
-### Validation Result
+### Post-Remediation Registry Evidence
+
+![Post-Remediation Registry Check](evidence/WN11-CC-000020_Post_Remediation_Registry_Check.png)
+
+Result confirmed:
 
 ```
 DisableIPSourceRouting : 2
 ```
 
-This confirms highest protection level is enforced.
+Tenable re-scan confirmed compliance.
 
-Tenable re-scan confirmed the control passed.
+### Post-Remediation Audit Evidence
+
+![Post-Remediation Passed Audit](evidence/WN11-CC-000020_Post_Remediation_Passed_Audit.png)
 
 ---
 
 # Evidence
 
-(Place artifacts inside `/evidence` folder)
+Artifacts stored in `/evidence`:
 
-Recommended filenames:
-
-- WN11-CC-000020_Baseline_Failed_Audit.png  
-- WN11-CC-000020_Pre_Remediation_Registry_Check.png  
-- WN11-CC-000020_Post_Remediation_Registry_Check.png  
-- WN11-CC-000020_Post_Remediation_Passed_Audit.png  
+- `WN11-CC-000020_Baseline_Failed_Audit.png`
+- `WN11-CC-000020_Pre_Remediation_Registry_Check.png`
+- `WN11-CC-000020_Post_Remediation_Registry_Check.png`
+- `WN11-CC-000020_Post_Remediation_Passed_Audit.png`
 
 ---
 
@@ -207,9 +215,9 @@ Recommended filenames:
 This remediation:
 
 - Eliminated IPv6 routing manipulation exposure  
-- Strengthened TCP/IP configuration baseline  
-- Reduced network attack surface  
-- Enforced secure routing configuration  
-- Demonstrated structured remediation lifecycle execution  
+- Strengthened TCP/IP security baseline  
+- Reduced network-layer attack surface  
+- Enforced secure configuration standards  
+- Demonstrated structured vulnerability remediation lifecycle  
 
-This control enhances network-layer security posture and mitigates routing-based evasion techniques.
+This control improves overall network security posture and mitigates routing-based evasion techniques.
