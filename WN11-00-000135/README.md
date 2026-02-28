@@ -89,6 +89,10 @@ Get-NetFirewallProfile
 
 Initial Tenable STIG audit marked this control as **Failed**.
 
+### Baseline Audit Status
+
+![Baseline Failed Audit](evidence/baseline_failed_audit.png)
+
 The system did not have Microsoft Defender Firewall enabled.
 
 ---
@@ -104,13 +108,15 @@ Select-Object Name, Enabled, DefaultInboundAction, DefaultOutboundAction
 
 ### Validation Result (Pre-Remediation)
 
-Output showed:
-
 ```
 Enabled : False
 ```
 
 Firewall was disabled across profiles.
+
+### Pre-Remediation PowerShell Output
+
+![Pre-Remediation Firewall Status](evidence/pre_remediation_firewall_status.png)
 
 This confirmed the Tenable finding as a **true positive**.
 
@@ -120,17 +126,7 @@ This confirmed the Tenable finding as a **true positive**.
 
 Remediation required enabling the host-based firewall.
 
-## Option 1 — GUI Method
-
-1. Press `Win + R`
-2. Type `wf.msc`
-3. Enable firewall for:
-   - Domain Profile
-   - Private Profile
-   - Public Profile
-4. Apply and save
-
-## Option 2 — PowerShell (Used)
+## PowerShell Remediation (Used)
 
 ```powershell
 Set-NetFirewallProfile -Profile Domain,Private,Public -Enabled True
@@ -161,6 +157,10 @@ Firewall successfully enabled on:
 - Private
 - Public
 
+### Post-Remediation PowerShell Output
+
+![Post-Remediation Firewall Status](evidence/post_remediation_firewall_status.png)
+
 Tenable re-scan confirmed the control passed.
 
 ---
@@ -169,37 +169,25 @@ Tenable re-scan confirmed the control passed.
 
 After enabling the firewall:
 
-Tenable was unable to scan the system due to inbound traffic restrictions.
+Tenable was unable to scan the system due to default inbound blocking rules.
 
-This occurred because default inbound policy blocks unsolicited connections.
+To validate remediation while maintaining security posture:
 
-To validate remediation while maintaining security:
+- A temporary inbound TCP rule was created
+- Scope was limited to required profile
+- Rule was controlled and minimally permissive
 
-- A temporary inbound TCP rule was created for the scanning process
-- Limited to required scope/profile
-
-This allowed scan validation without broadly weakening firewall policy.
-
-This demonstrates:
-
-- Security-first enforcement
-- Operational troubleshooting
-- Controlled rule management
+This demonstrated balancing security enforcement with operational scanning requirements.
 
 ---
 
 # Evidence
 
-(Place artifacts inside `/evidence` folder)
+Evidence stored in `/evidence` folder:
 
-Recommended:
-
-- Baseline failed audit screenshot  
-- Pre-remediation PowerShell output  
-- Post-remediation PowerShell output  
-- Post-remediation audit screenshot  
-- WN11-00-000135_Baseline_Tenable_Report.pdf  
-- WN11-00-000135_Post-Remediation_Tenable_Report.pdf  
+- `baseline_failed_audit.png`
+- `pre_remediation_firewall_status.png`
+- `post_remediation_firewall_status.png`
 
 ---
 
