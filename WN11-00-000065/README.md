@@ -10,18 +10,33 @@
 
 ---
 
+## Table of Contents
+
+- [Skills Demonstrated](#skills-demonstrated)
+- [Control Objective](#control-objective)
+- [Security Risk](#security-risk)
+- [Phase 1 — Detection](#phase-1--detection)
+- [Phase 2 — Validation & Analysis](#phase-2--validation--analysis)
+- [Phase 3 — Remediation](#phase-3--remediation)
+- [Phase 4 — Post-Remediation Validation](#phase-4--post-remediation-validation)
+- [Evidence](#evidence)
+- [NIST 800-53 Mapping](#nist-800-53-mapping)
+- [Compliance Impact](#compliance-impact)
+
+---
+
 ## Skills Demonstrated
 
 - Windows 11 account lifecycle management  
-- Local user enumeration via PowerShell  
-- Inactive account detection logic  
-- SID analysis and built-in account identification  
-- Account risk assessment  
-- Secure account disablement  
-- Vulnerability scan validation workflow  
+- Local account enumeration using PowerShell  
+- Inactive account detection and filtering logic  
+- SID analysis for built-in vs manually created account identification  
+- Identity & Access Management (IAM) control validation  
 - Least privilege enforcement  
-- Identity & Access Management (IAM) alignment  
-- Compliance validation through re-scan  
+- Secure account disablement procedures  
+- Vulnerability scanner finding validation  
+- Root cause analysis of compliance warning conditions  
+- STIG compliance documentation and audit artifact collection  
 
 ---
 
@@ -29,38 +44,31 @@
 
 Ensure unused local accounts are disabled or removed after 35 days of inactivity.
 
-This control reduces exposure from dormant accounts that may be leveraged for:
+This control reduces exposure from dormant accounts that could be leveraged for:
 
 - Unauthorized access  
 - Privilege escalation  
 - Lateral movement  
-- Persistence mechanisms  
+- Persistence  
 
 ---
 
 ## Security Risk
 
-Inactive local accounts increase attack surface by providing unused credentials that may:
+Inactive accounts increase attack surface because they:
 
-- Be targeted by brute force attacks  
-- Be reused by unauthorized individuals  
-- Remain unnoticed during security monitoring  
+- May retain valid credentials  
+- Are less likely to be monitored  
+- Can bypass normal operational oversight  
+- Provide footholds for internal threat actors  
 
-This control enforces:
-
-- Least privilege  
-- Proper Identity & Access Management (IAM)  
-- Account lifecycle governance  
+This control enforces proper Identity & Access Management (IAM) and supports least privilege principles.
 
 ---
 
-# Phase 1 — Detection (Baseline Scan)
+# Phase 1 — Detection
 
-Initial Tenable vulnerability scan identified the system as **Non-Compliant**.
-
-### Evidence of Non-Compliance
-
-Scan detected enabled local account(s) with no logon activity in over 35 days.
+Initial Tenable STIG audit identified the system as **Non-Compliant** due to enabled local accounts with no logon activity in over 35 days.
 
 Identified account:
 
@@ -70,58 +78,59 @@ Identified account:
 
 # Phase 2 — Validation & Analysis
 
-Before remediating, I validated the scan finding to ensure it was not a false positive.
-
-Executed the following PowerShell command:
+To confirm the finding was a true positive, I executed:
 
 ```powershell
 Get-LocalUser |
 Where-Object { $_.Enabled -eq $true -and $_.LastLogon -lt (Get-Date).AddDays(-35) }
 ```
 
-### Validation Result
+### Pre-Remediation Evidence
 
-The command returned:
+![Inactive Account Query](evidence/WN11-00-000065_Pre_Remediation_Inactive_Account_Query.png)
+
+![Inactive Account Query Result](evidence/WN11-00-000065_Pre_Remediation_Query_Result.png)
+
+Result:
 
 - Administrator (Enabled = True)
 
-The `LastLogon` field returned no value, indicating:
+The `LastLogon` value indicated no recent activity, confirming the account met the 35-day inactivity threshold.
 
-- The account had no recorded interactive logon
-- Or had never been used
-
-This confirmed the scan finding was a **true positive**.
+This validated the scanner finding as a **true positive**.
 
 ---
 
-## Account Identification & Risk Analysis
+## Account Identification & Risk Assessment
 
-To determine whether the account was a built-in system administrator or manually created, I executed:
+To determine whether the account was built-in or manually created:
 
 ```powershell
 Get-LocalUser | Select-Object Name, SID, Enabled
 ```
 
-### Findings
+### SID Validation Evidence
+
+![SID Validation](evidence/WN11-00-000065_SID_Validation.png)
+
+Findings:
 
 - SID ended in **-1000**
 - Built-in Administrator accounts end in **-500**
 
 This confirmed:
 
-- The account was **not** a built-in system-critical administrator  
+- The account was not the built-in system Administrator  
 - It was manually created  
-- It was safe to disable  
+- Disabling would not impact system-critical functionality  
 
-This analysis ensured remediation would not impact system integrity.
+This step ensured safe remediation.
 
 ---
 
 # Phase 3 — Remediation
 
-Because the account was unused and non-critical, remediation was required.
-
-Rather than deleting the account, I chose to **disable** it to preserve recoverability if needed.
+Rather than deleting the account, I chose to disable it to preserve auditability and potential recoverability.
 
 Executed:
 
@@ -129,27 +138,37 @@ Executed:
 Disable-LocalUser -Name "Administrator"
 ```
 
-This prevented the account from being used while maintaining forensic traceability.
+### Remediation Evidence
+
+![Account Disable Execution](evidence/WN11-00-000065_Remediation_Disable_Account.png)
+
+This action:
+
+- Prevented authentication use
+- Preserved forensic traceability
+- Aligned with secure account governance practices
 
 ---
 
 # Phase 4 — Post-Remediation Validation
 
-To confirm the account was successfully disabled:
+To confirm successful remediation:
 
 ```powershell
 Get-LocalUser -Name "Administrator"
 ```
 
+### Post-Remediation Status Evidence
+
+![Post-Remediation Account Status](evidence/WN11-00-000065_Post_Remediation_Account_Status.png)
+
 Verified:
 
 - Enabled = False
 
-Additionally, the system was rescanned using Tenable.
+A Tenable re-scan returned a **Warning** status rather than “Passed.”
 
-### Scan Result
-
-The control returned a **Warning** status rather than “Passed” due to the presence of the built-in Administrator account still enabled, which may require additional policy-level configuration.
+This occurred due to the built-in Administrator account still being enabled, which may require additional policy configuration.
 
 However, the manually created inactive account was successfully remediated.
 
@@ -157,14 +176,15 @@ However, the manually created inactive account was successfully remediated.
 
 ## Evidence
 
-(Place your screenshots and PDFs in the `evidence/` folder and reference them here)
+Artifacts stored in `/evidence`:
 
-Recommended structure:
-
-- Baseline scan screenshot  
-- Post-remediation scan screenshot  
-- [Baseline Scan Report (PDF)](evidence/baseline_scan.pdf)  
-- [Post-Remediation Scan Report (PDF)](evidence/post_remediation_scan.pdf)  
+- `WN11-00-000065_Pre_Remediation_Inactive_Account_Query.png`
+- `WN11-00-000065_Pre_Remediation_Query_Result.png`
+- `WN11-00-000065_SID_Validation.png`
+- `WN11-00-000065_Remediation_Disable_Account.png`
+- `WN11-00-000065_Post_Remediation_Account_Status.png`
+- `WN11-00-000065_Baseline_Tenable_Report.pdf`
+- `WN11-00-000065_Post_Remediation_Tenable_Report.pdf`
 
 ---
 
@@ -173,19 +193,22 @@ Recommended structure:
 | NIST Control | Control Name | Relevance |
 |--------------|-------------|-----------|
 | AC-2 | Account Management | Governs account lifecycle and inactivity policies |
-| AC-6 | Least Privilege | Prevents unnecessary account access |
+| AC-6 | Least Privilege | Restricts unnecessary account access |
 | IA-2 | Identification & Authentication | Ensures only active authorized accounts are usable |
 | IA-4 | Identifier Management | Controls account creation and maintenance |
-| CM-6 | Configuration Settings | Enforces account configuration compliance |
+| CM-6 | Configuration Settings | Enforces secure account configuration |
 
 ---
 
-## Compliance Impact
+# Compliance Impact
 
 This remediation:
 
-- Reduced attack surface  
+- Reduced attack surface from dormant accounts  
 - Strengthened local account governance  
-- Enforced least privilege  
+- Enforced least privilege principles  
 - Improved audit readiness  
 - Demonstrated vulnerability validation discipline  
+- Showed proper built-in vs custom account differentiation  
+
+This lab highlights Identity & Access Management (IAM) enforcement within a Windows endpoint security context. 
